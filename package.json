@@ -1,0 +1,63 @@
+{
+    "name": "smpos",
+    "version": "1.0.0",
+    "license": "MIT",
+    "private": true,
+    "scripts": {
+        "mock": "supervisor  --watch ./mock ./mock/server.js",
+        "postinstall": "npx jetify",
+        "start": "react-native start --port=13080",
+        "android": "react-native run-android --port=13080",
+        "ios": "react-native run-ios --port=13080",
+        "test": "jest",
+        "lint": "eslint ."
+    },
+    "dependencies": {
+        "axios": "^0.19.0",
+        "beeshell": "^2.0.11",
+        "crypto-js": "^3.1.9-1",
+        "mobx": "^5.9.4",
+        "mobx-react": "^5.4.4",
+        "react": "^16.9.0",
+        "react-native": "^0.61.0",
+        "react-native-elements": "^1.1.0",
+        "react-native-gesture-handler": "^1.5.2",
+        "react-native-qrcode": "^0.2.7",
+        "react-native-qrcode-svg": "^6.0.1",
+        "react-native-reanimated": "^1.2.0",
+        "react-native-root-toast": "^3.0.2",
+        "react-native-screens": "^1.0.0-alpha.23",
+        "react-native-svg": "^9.13.6",
+        "react-native-vector-icons": "^6.4.2",
+        "react-navigation": "^4.0.10",
+        "react-navigation-drawer": "^2.3.3",
+        "react-navigation-stack": "^1.10.3",
+        "victory-native": "^34.1.0"
+    },
+    "devDependencies": {
+        "@babel/core": "^7.5.5",
+        "@babel/plugin-proposal-decorators": "^7.4.4",
+        "@babel/runtime": "^7.5.5",
+        "@react-native-community/eslint-config": "^0.0.5",
+        "@types/crypto-js": "^3.1.43",
+        "@types/node": "^12.0.4",
+        "@types/react": "^16.8.18",
+        "@types/react-native": "^0.57.60",
+        "@types/react-native-vector-icons": "^6.4.0",
+        "babel-jest": "^24.9.0",
+        "babel-plugin-import": "^1.11.2",
+        "babel-plugin-transform-remove-console": "^6.9.4",
+        "eslint": "^6.2.0",
+        "express": "^4.17.0",
+        "http-proxy-middleware": "^0.19.1",
+        "jest": "^24.9.0",
+        "jetifier": "^1.6.4",
+        "metro-react-native-babel-preset": "^0.56.0",
+        "mockjs": "^1.0.1-beta3",
+        "react-test-renderer": "16.8.6",
+        "supervisor": "^0.12.0"
+    },
+    "jest": {
+        "preset": "react-native"
+    }
+}

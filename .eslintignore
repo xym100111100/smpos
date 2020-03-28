@@ -1,0 +1,3 @@
+# 设置ESLint代码检查时忽略的目录文件
+dist/*
+node_modules

@@ -1,0 +1,159 @@
+package com.smpos;
+
+import android.app.Activity;
+import android.content.Context;
+import android.content.Intent;
+import android.media.MediaRouter;
+import android.net.Uri;
+import android.os.Bundle;
+import android.provider.Settings;
+import android.view.Display;
+import android.view.WindowManager;
+import android.widget.Toast;
+
+import com.facebook.react.ReactInstanceManager;
+import com.facebook.react.ReactRootView;
+import com.facebook.react.common.LifecycleState;
+import com.facebook.react.modules.core.DefaultHardwareBackBtnHandler;
+import com.facebook.react.shell.MainReactPackage;
+
+public class MainActivity extends Activity implements DefaultHardwareBackBtnHandler {
+    private final int OVERLAY_PERMISSION_REQ_CODE = 1;  // Choose any value
+
+    private ReactRootView mReactRootView;
+    private ReactInstanceManager mReactInstanceManager;
+
+    private static MainActivity mCurrentActivity;
+
+    public static MainActivity getCurrentActivity() {
+        return mCurrentActivity;
+    }
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        mCurrentActivity = this;
+
+        // 隐藏系统上方状态栏
+        this.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
+
+        // 主屏载入react native的主页面
+        mReactRootView = new ReactRootView(this);
+        mReactInstanceManager = ReactInstanceManager.builder()
+                .setApplication(getApplication())
+                .setCurrentActivity(this)
+                .setBundleAssetName("index.android.bundle")
+                .setJSMainModulePath("index")
+                .addPackage(new MainReactPackage())
+                // .setUseDeveloperSupport(BuildConfig.DEBUG)  // 开发时要使用调试模式(无效)
+                .setUseDeveloperSupport(true)                       // 开发时要使用调试模式(无效)
+                .setInitialLifecycleState(LifecycleState.RESUMED)
+                .build();
+        // The string here (e.g. "MyReactNativeApp") has to match
+        // the string in AppRegistry.registerComponent() in index.js
+        // 第二个参数要与用AppRegistry.registerComponent()注册的组件的名字一致
+        // 本项目规范在项目根目录的index.js文件中注册组件，请在这个文件中检查组件注册的情况
+        mReactRootView.startReactApplication(mReactInstanceManager, "App1", null);
+
+        setContentView(mReactRootView);
+    }
+
+//    @Override
+//    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+//        if (requestCode == OVERLAY_PERMISSION_REQ_CODE) {
+//            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+//                if (!Settings.canDrawOverlays(this)) {
+//                    // SYSTEM_ALERT_WINDOW permission not granted
+//                }
+//            }
+//        }
+//        mReactInstanceManager.onActivityResult(this, requestCode, resultCode, data);
+//    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        // 显示副屏
+        MediaRouter mediaRouter = (MediaRouter) getSystemService(Context.MEDIA_ROUTER_SERVICE);
+        MediaRouter.RouteInfo localRouteInfo = mediaRouter.getSelectedRoute(MediaRouter.ROUTE_TYPE_LIVE_AUDIO);
+        Display display = localRouteInfo != null ? localRouteInfo.getPresentationDisplay() : null;
+        if (display != null) {
+            Toast.makeText(MainActivity.getCurrentActivity(), "双屏显示", Toast.LENGTH_SHORT).show();
+            // SYSTEM_ALERT_WINDOW权限申请
+            if (!Settings.canDrawOverlays(MainActivity.getCurrentActivity())) {
+                Toast.makeText(MainActivity.getCurrentActivity(), "请授权" + R.string.app_name + "使用副屏", Toast.LENGTH_SHORT).show();
+                Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION);
+                // 限制申请权限时只显示当前的应用(否则会列出所有应用)
+                intent.setData(Uri.parse("package:" + getPackageName()));
+                // 要再Service是中或者ApplicationContext中startActivity时要添加额外标志
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                startActivityForResult(intent, OVERLAY_PERMISSION_REQ_CODE);
+                System.exit(0);
+            } else {
+                showSecondaryDisplay(display);
+            }
+        } else {
+            Toast.makeText(MainActivity.getCurrentActivity(), "单屏显示", Toast.LENGTH_SHORT).show();
+        }
+
+        // 绑定内部打印机
+        InnerPrinterUtils.bind();
+    }
+
+    /**
+     * 显示副屏
+     */
+    private void showSecondaryDisplay(Display display) {
+//        SecondaryActivity secondaryActivity = new SecondaryActivity(getApplicationContext(), display, getApplication(), this);
+        SecondaryActivity secondaryActivity = new SecondaryActivity(getApplicationContext(), display, mReactInstanceManager);
+
+        secondaryActivity.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT); // TYPE_SYSTEM_ALERT / TYPE_PHONE
+        secondaryActivity.show();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+
+        if (mReactInstanceManager != null) {
+            mReactInstanceManager.onHostPause(this);
+        }
+    }
+
+//    @Override
+//    protected void onResume() {
+//        super.onResume();
+//
+//        if (mReactInstanceManager != null) {
+//            mReactInstanceManager.onHostResume(this, this);
+//        }
+//    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+
+        if (mReactInstanceManager != null) {
+            mReactInstanceManager.onHostDestroy(this);
+        }
+        if (mReactRootView != null) {
+            mReactRootView.unmountReactApplication();
+        }
+    }
+
+    @Override
+    public void onBackPressed() {
+        if (mReactInstanceManager != null) {
+            mReactInstanceManager.onBackPressed();
+        } else {
+            super.onBackPressed();
+        }
+    }
+
+    @Override
+    public void invokeDefaultOnBackPressed() {
+        super.onBackPressed();
+    }
+}
